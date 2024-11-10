@@ -20,6 +20,7 @@ import Application from './components/Noc/Application.jsx';
 import Renewal from './components/Noc/Renewal.jsx';
 import Checklist from './components/Noc/CheckList.jsx';
 import ApplicationList from './components/Noc/ApplicationList.jsx';
+import { server } from '../config.js';
 
 // Custom hook to check user status
 const useCheckUser = () => {
@@ -30,7 +31,7 @@ const useCheckUser = () => {
     const checkUser = async () => {
       const toastId = toast.loading('Please Wait...');
       try {
-        const { data } = await axios.get('http://localhost:4001/user/me', { withCredentials: true });
+        const { data } = await axios.get(`${server}/user/me`, { withCredentials: true });
         dispatch(userExist(data.user));
       } catch (error) {
         dispatch(userNotExist());

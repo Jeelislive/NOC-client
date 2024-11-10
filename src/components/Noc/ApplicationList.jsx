@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { server } from "../../../config";
 
 function UserList() {
   const [users, setUsers] = useState([]);
@@ -26,12 +27,12 @@ function UserList() {
       try {
         let response;
         if (filterType === "all") {
-          response = await axios.get(`http://localhost:4001/user/applicationlist`, {
+          response = await axios.get(`${server}/user/applicationlist`, {
             params: { page: currentPage, limit },
             withCredentials: true,
           });
         } else if (filterType === "fresh") {
-          response = await axios.get(`http://localhost:4001/user/freshlist`, {
+          response = await axios.get(`${server}/user/freshlist`, {
             params: { page: currentPage, limit },
             withCredentials: true,
           });
@@ -40,7 +41,7 @@ function UserList() {
             toast.error("No user has applied for a fresh application");
           }
         } else if (filterType === "renewal") {
-          response = await axios.get(`http://localhost:4001/user/renewallist`, {
+          response = await axios.get(`${server}/user/renewallist`, {
             params: { page: currentPage, limit },
             withCredentials: true,
           });
@@ -105,7 +106,7 @@ function UserList() {
       }
 
       await axios.put(
-        `http://localhost:4001/user/updateStatus`,
+        `${server}/user/updateStatus`,
         { email, applicationStatus: newStatus },
         { withCredentials: true }
       );

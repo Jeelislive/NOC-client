@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
+import { server } from '../../../config';
 
 const Checklist = () => {
   const location = useLocation();
@@ -46,7 +47,7 @@ const Checklist = () => {
     const fetchIncompleteItems = async () => {
       console.log("Fetching incomplete items for email:", email);
       try {
-        const response = await axios.get('http://localhost:4001/user/getlist', { 
+        const response = await axios.get(`${server}/user/getlist`, { 
           params: { email },
           withCredentials: true 
         });
@@ -119,7 +120,7 @@ const Checklist = () => {
             }
           }
         }
-        await axios.get("http://localhost:4001/user/send-notification", {
+        await axios.get(`${server}/user/send-notification`, {
           params: { email, missingItems },
           withCredentials: true,
         });
@@ -136,7 +137,7 @@ const Checklist = () => {
 
       console.log("Filtered checklist:", filteredChecklist);
 
-      const response = await axios.post(`http://localhost:4001/user/checklist`, {
+      const response = await axios.post(`${server}/user/checklist`, {
         email,
         checklist: filteredChecklist, 
       }, {

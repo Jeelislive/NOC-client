@@ -4,6 +4,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import {userExist, userNotExist} from '../../redux/reducers/auth'
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { server } from '../../../config';
 
 export default function Header() {
   const {user}  = useSelector((state) => state.auth);
@@ -11,7 +12,7 @@ export default function Header() {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
-      axios.get('http://localhost:4001/user/logout', {
+      axios.get(`${server}/user/logout`, {
         withCredentials: true,
       })
         .then(response => {

@@ -2,6 +2,7 @@ import { Button } from '@material-tailwind/react';
 import React, { useState } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { server } from '../../../config';
 
 const Renewal = () => {
     const [formData, setFormData] = useState({
@@ -38,7 +39,7 @@ const Renewal = () => {
         }
 
         try {
-            const response = await axios.post("http://localhost:4001/user/renewal", data, {
+            const response = await axios.post(`${server}/user/renewal`, data, {
                 withCredentials: true,
                 headers: { 'Content-Type': 'multipart/form-data' },
             });

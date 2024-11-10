@@ -5,6 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { userExist } from "../../redux/reducers/auth";
+import { server } from "../../../config";
 
 function Login() {
   const {
@@ -36,7 +37,7 @@ function Login() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4001/user/login",
+        `${server}/user/login`,
         userInfo,
         config
       );

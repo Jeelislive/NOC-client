@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 import { Link } from 'react-router-dom';
+import { server } from '../../../config';
 
 function Applicant() {
     const [userData, setUserData] = useState(null);
@@ -14,7 +15,7 @@ function Applicant() {
             const loadingToast = toast.loading('Loading your application data...');
 
             try {
-                const response = await axios.get('http://localhost:4001/user/myapplication', { withCredentials: true });
+                const response = await axios.get(`${server}/user/myapplication`, { withCredentials: true });
 
                 if (response.data) {
                     setUserData(response.data);
@@ -49,7 +50,7 @@ function Applicant() {
         }
 
         try {
-            const response = await axios.post('http://localhost:4001/user/delete', { public_ids: selectedDocuments }, {
+            const response = await axios.post(`${server}/user/delete`, { public_ids: selectedDocuments }, {
                 withCredentials: true
             });
 

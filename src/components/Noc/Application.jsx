@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Typography, Input, Checkbox } from "@material-tailwind/react";
 import toast from 'react-hot-toast';
 import axios from 'axios';
+import { server } from '../../../config';
 
 const Application = () => {
   const [formData, setFormData] = useState({
@@ -40,7 +41,7 @@ const Application = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:4001/user/application", data, {
+      const response = await axios.post(`${server}/user/application`, data, {
         withCredentials: true,
         headers: { 'Content-Type': 'multipart/form-data' },
       });

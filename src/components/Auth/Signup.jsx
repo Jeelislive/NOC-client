@@ -5,6 +5,7 @@ import axios from "axios";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { userExist } from "../../redux/reducers/auth";
+import { server } from "../../../config";
 
 function Signup() {
   const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +42,7 @@ function Signup() {
 
     try {
       const { data } = await axios.post(
-        "http://localhost:4001/user/new",
+        `${server}/user/new`,
         userInfo,
         config
       );
