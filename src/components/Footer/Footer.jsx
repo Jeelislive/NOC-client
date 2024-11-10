@@ -13,7 +13,7 @@ export default function Footer() {
     className="mr-3 h-20 w-20 rounded-full" // Set height and width equally
     alt="Logo"
 />
-
+        
     </Link>
 </div>
 
