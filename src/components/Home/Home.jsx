@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom';
 
 export default function Home() {
     return (
-        <div className="mx-auto w-full max-w-7xl">
+        <div className="mx-auto w-full max-w-7xl px-4">
             <aside className="relative overflow-hidden text-black rounded-lg sm:mx-16 mx-2 py-10 sm:py-16">
-                <div className="relative z-10 max-w-screen-xl px-4 pb-16 pt-8 sm:py-24 mx-auto sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center sm:items-end sm:justify-between">
-                    <div className="sm:max-w-xl space-y-4 sm:space-y-6 text-center sm:text-right sm:ml-auto">
+                <div className="relative z-10 max-w-screen-xl mx-auto flex flex-col-reverse sm:flex-row items-center sm:items-start justify-between space-y-10 sm:space-y-0 sm:space-x-8">
+                    <div className="text-center mt-12 sm:text-left sm:max-w-xl space-y-4 sm:space-y-6">
                         <h2 className="text-3xl sm:text-5xl font-bold leading-tight">
                             Obtain Your <span className="text-orange-700">Fire NOC</span>
                         </h2>
@@ -21,21 +21,21 @@ export default function Home() {
                             Apply for Fire NOC
                         </Link>
                     </div>
-                    <div className="mt-10 sm:mt-0">
+                    <div className="flex justify-center sm:justify-end w-full sm:w-auto">
                         <img 
-                            className="w-48 sm:w-96 mx-auto sm:ml-0" 
+                            className="w-52 sm:w-80 md:w-96 h-auto" 
                             src="https://res.cloudinary.com/dupv4u12a/image/upload/v1731230112/ctvgywff8zmqbu1xk6fh.png" 
-                            alt="image1" 
+                            alt="Fire NOC illustration" 
                         />
                     </div>
                 </div>
             </aside>
 
-            <div className="grid place-items-center sm:mt-20 mt-10">
+            <div className="grid place-items-center sm:mt-20 mt-10 w-full">
                 <img 
                     className="w-11/12 sm:w-full sm:max-w-4xl" 
                     src="https://res.cloudinary.com/dupv4u12a/image/upload/v1731229877/yvqwnenaxmnf8kwk17fq.png" 
-                    alt="image2" 
+                    alt="Fire Safety Steps" 
                 />
             </div>
 

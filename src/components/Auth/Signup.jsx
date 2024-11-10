@@ -66,21 +66,23 @@ function Signup() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-10 w-full max-w-md mx-auto">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-800">
+      <div className="bg-white dark:bg-gray-700 rounded-lg shadow-lg p-10 w-full max-w-md mx-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          <h3 className="font-bold text-2xl text-center mb-4">Signup</h3>
+          <h3 className="font-bold text-2xl text-center mb-4 text-gray-800 dark:text-gray-200">
+            Signup
+          </h3>
 
           {/* Username Input */}
           <div className="mt-4 space-y-2">
-            <label htmlFor="username" className="block font-medium text-gray-700">
+            <label htmlFor="username" className="block font-medium text-gray-700 dark:text-gray-300">
               Username
             </label>
             <input
               type="text"
               id="username"
               placeholder="Enter your username"
-              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-900 dark:text-white"
+              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-800 dark:text-gray-200"
               {...register("username", { required: true })}
             />
             {errors.username && (
@@ -90,14 +92,14 @@ function Signup() {
 
           {/* Email Input */}
           <div className="mt-4 space-y-2">
-            <label htmlFor="email" className="block font-medium text-gray-700">
+            <label htmlFor="email" className="block font-medium text-gray-700 dark:text-gray-300">
               Email
             </label>
             <input
               type="email"
               id="email"
               placeholder="Enter your email"
-              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-900 dark:text-white"
+              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-800 dark:text-gray-200"
               {...register("email", { required: true })}
             />
             {errors.email && (
@@ -107,14 +109,14 @@ function Signup() {
 
           {/* Password Input */}
           <div className="mt-4 space-y-2">
-            <label htmlFor="password" className="block font-medium text-gray-700">
+            <label htmlFor="password" className="block font-medium text-gray-700 dark:text-gray-300">
               Password
             </label>
             <input
               type="password"
               id="password"
               placeholder="Enter your password"
-              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-900 dark:text-white"
+              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-800 dark:text-gray-200"
               {...register("password", { required: true })}
             />
             {errors.password && (
@@ -124,12 +126,12 @@ function Signup() {
 
           {/* Role Selector */}
           <div className="mt-4 space-y-2">
-            <label htmlFor="role" className="block font-medium text-gray-700">
+            <label htmlFor="role" className="block font-medium text-gray-700 dark:text-gray-300">
               Role
             </label>
             <select
               id="role"
-              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-900 dark:text-white"
+              className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-800 dark:text-gray-200"
               {...register("role", { required: true })}
             >
               <option value="">Select Role</option>
