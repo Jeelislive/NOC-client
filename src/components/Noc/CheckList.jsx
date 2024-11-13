@@ -44,12 +44,18 @@ const Checklist = () => {
   
 
   useEffect(() => {
+    const token  = localStorage.getItem('token');
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
     const fetchIncompleteItems = async () => {
       console.log("Fetching incomplete items for email:", email);
       try {
         const response = await axios.get(`${server}/user/getlist`, { 
           params: { email },
-          withCredentials: true 
+          withCredentials: true ,
+          headers,
         });
         if (response.status === 200) {
           console.log("Response:", response.data);
@@ -110,6 +116,7 @@ const Checklist = () => {
   };
 
   const sendEmailNotification = async () => {
+    const token = localStorage.getItem('token');
     const loadingToast = toast.loading('Please wait...');
       try {
         const missingItems = [];
@@ -120,9 +127,14 @@ const Checklist = () => {
             }
           }
         }
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
         await axios.get(`${server}/user/send-notification`, {
           params: { email, missingItems },
           withCredentials: true,
+          headers,
         });
         toast.success("Notification sent to user.", { id: loadingToast });
       } catch (error) {
@@ -135,13 +147,18 @@ const Checklist = () => {
     try {
       const filteredChecklist = filterCheckedItems(checklist);
 
-      console.log("Filtered checklist:", filteredChecklist);
+      const token = localStorage.getItem('token');
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      }
 
       const response = await axios.post(`${server}/user/checklist`, {
         email,
         checklist: filteredChecklist, 
       }, {
         withCredentials: true,
+        headers,
       });
       toast.success("Checklist submitted successfully!");
     } catch (error) {

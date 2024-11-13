@@ -15,7 +15,9 @@ function Applicant() {
             const loadingToast = toast.loading('Loading your application data...');
 
             try {
-                const response = await axios.get(`${server}/user/myapplication`, { withCredentials: true });
+                const token = localStorage.getItem('token');
+                const headers = { Authorization: `Bearer ${token}` };
+                const response = await axios.get(`${server}/user/myapplication`, { withCredentials: true, headers });
 
                 if (response.data) {
                     setUserData(response.data);

@@ -12,8 +12,14 @@ export default function Header() {
   const dispatch = useDispatch();
 
   const handleLogout = () => {
+    const token = localStorage.getItem('token');
+    const headers = {
+        Authorization: `Bearer ${token}`,
+
+    }
       axios.get(`${server}/user/logout`, {
         withCredentials: true,
+        headers: headers
       })
         .then(response => {
           dispatch(userNotExist());

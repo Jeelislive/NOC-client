@@ -39,9 +39,12 @@ const Renewal = () => {
         }
 
         try {
+            const token = localStorage.getItem('token');
             const response = await axios.post(`${server}/user/renewal`, data, {
                 withCredentials: true,
-                headers: { 'Content-Type': 'multipart/form-data' },
+                headers: { 'Content-Type': 'multipart/form-data', 
+                Authorization: `Bearer ${token}` ,
+                 },
             });
             toast.success(response.data.message, { id: toastId });
 
