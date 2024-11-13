@@ -15,7 +15,6 @@ export default function Header() {
     const token = localStorage.getItem('token');
     const headers = {
         Authorization: `Bearer ${token}`,
-
     }
       axios.get(`${server}/user/logout`, {
         withCredentials: true,
@@ -23,6 +22,7 @@ export default function Header() {
       })
         .then(response => {
           dispatch(userNotExist());
+            localStorage.removeItem('token');
           navigate('/login');
           toast.success(response.data.message);
         })
