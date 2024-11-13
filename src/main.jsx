@@ -113,10 +113,10 @@ const App = () => {
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+      //  <React.StrictMode>
     <Provider store={store}>
       <App />
       <Toaster position="bottom-center" />
     </Provider>
-  // </React.StrictMode>
+  //  </React.StrictMode>
 );

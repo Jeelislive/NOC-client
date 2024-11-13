@@ -51,8 +51,9 @@ function UserList() {
         }
 
         if (response) {
+          console.log(response);
           setUsers(response?.data);
-           console.log(response?.data);
+          //  console.log(response?.data);
           setTotalPages(response?.data?.totalPages || 1);
         }
       } catch (error) {

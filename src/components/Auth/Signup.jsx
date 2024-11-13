@@ -7,12 +7,12 @@ import { useDispatch } from "react-redux";
 import { userExist } from "../../redux/reducers/auth";
 import { server } from "../../../config";
 
+
 function Signup() {
   const [isLoading, setIsLoading] = useState(false);
-  const location = useLocation();
+  const {storetokeninLS} = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const from = location.state?.from?.pathname || "/";
   const {
     register,
     handleSubmit,
@@ -31,7 +31,7 @@ function Signup() {
       username: data.username,
       email: data.email,
       password: data.password,
-      role: data.role, // Include role in the signup data
+      role: data.role,
     };
     const config = {
       withCredentials: true,
@@ -48,9 +48,8 @@ function Signup() {
       );
       dispatch(userExist(data.user));
       toast.success(data.message, { id: toastId });
-      console.log(data.user);
       if (data.user) {
-        navigate(from, { replace: true });
+        navigate("/login");
       }
     } catch (error) {
       if (error.response) {

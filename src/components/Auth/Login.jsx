@@ -26,7 +26,7 @@ function Login() {
     const userInfo = {
       email: formdata.email,
       password: formdata.password,
-      role: formdata.role, // Include role in the login data
+      role: formdata.role, 
     };
     const config = {
       withCredentials: true,
@@ -41,12 +41,9 @@ function Login() {
         userInfo,
         config
       );
-
-      // Update Redux store with user data
       dispatch(userExist(data.user));
-
       toast.success("Logged in Successfully", { id: toastId });
-        navigate("/dashboard");
+      navigate("/dashboard");
     
     } catch (error) {
       if (error?.response) {
