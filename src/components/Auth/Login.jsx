@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { userExist } from "../../redux/reducers/auth";
 import { server } from "../../../config";
+import { useAuth } from "../../redux/auth";
 
 function Login() {
   const {
@@ -15,6 +16,7 @@ function Login() {
   } = useForm();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const {storetokeninLS} = useAuth();
 
   useEffect(() => {
     document.documentElement.classList.add("dark");
@@ -42,7 +44,7 @@ function Login() {
         config
       );
       dispatch(userExist(data.user));
-      localStorage.setItem("token", data.token);
+      storetokeninLS(data.token);
       toast.success("Logged in Successfully", { id: toastId });
       navigate("/dashboard");
     

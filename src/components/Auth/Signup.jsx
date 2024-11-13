@@ -6,12 +6,14 @@ import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { userExist } from "../../redux/reducers/auth";
 import { server } from "../../../config";
+import { useAuth } from "../../redux/auth";
 
 
 function Signup() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const {storetokeninLS} = useAuth();
   const {
     register,
     handleSubmit,
@@ -46,7 +48,7 @@ function Signup() {
         config
       );
       dispatch(userExist(data.user));
-      localStorage.setItem("token", data.token);
+      storetokeninLS(data.token);
       toast.success(data.message, { id: toastId });
       if (data.user) {
         navigate("/login");

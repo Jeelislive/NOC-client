@@ -3,6 +3,7 @@ import { Button, Typography, Input, Checkbox } from "@material-tailwind/react";
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { server } from '../../../config';
+import { useAuth } from '../../redux/auth';
 
 const Application = () => {
   const [formData, setFormData] = useState({

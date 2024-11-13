@@ -21,6 +21,7 @@ import Renewal from './components/Noc/Renewal.jsx';
 import Checklist from './components/Noc/CheckList.jsx';
 import ApplicationList from './components/Noc/ApplicationList.jsx';
 import { server } from '../config.js';
+import { AuthProvider } from './redux/auth.jsx';
 
 // Custom hook to check user status
 const useCheckUser = () => {
@@ -127,9 +128,11 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
       //  <React.StrictMode>
-    <Provider store={store}>
+   <AuthProvider>
+     <Provider store={store}>
       <App />
       <Toaster position="bottom-center" />
     </Provider>
+   </AuthProvider>
   //  </React.StrictMode>
 );
