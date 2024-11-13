@@ -42,6 +42,7 @@ function Login() {
         config
       );
       dispatch(userExist(data.user));
+      localStorage.setItem("token", data.token);
       toast.success("Logged in Successfully", { id: toastId });
       navigate("/dashboard");
     

@@ -21,19 +21,26 @@ function UserList() {
   };
 
   const navigate = useNavigate();
-
+  const token = localStorage.getItem("token");
   useEffect(() => {
     const fetchData = async () => {
       try {
         let response;
+        
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
         if (filterType === "all") {
           response = await axios.get(`${server}/user/applicationlist`, {
             params: { page: currentPage, limit },
+            headers,
             withCredentials: true,
           });
         } else if (filterType === "fresh") {
           response = await axios.get(`${server}/user/freshlist`, {
             params: { page: currentPage, limit },
+            headers,
             withCredentials: true,
           });
           console.log(response?.data);
@@ -43,6 +50,7 @@ function UserList() {
         } else if (filterType === "renewal") {
           response = await axios.get(`${server}/user/renewallist`, {
             params: { page: currentPage, limit },
+            headers,
             withCredentials: true,
           });
           if (response?.data?.length === 0) {
@@ -51,9 +59,7 @@ function UserList() {
         }
 
         if (response) {
-          console.log(response);
           setUsers(response?.data);
-          //  console.log(response?.data);
           setTotalPages(response?.data?.totalPages || 1);
         }
       } catch (error) {
@@ -106,10 +112,15 @@ function UserList() {
         return;
       }
 
+      const headers = {
+        Authorization: `Bearer ${token}`, 
+        'Content-Type': 'application/json',
+      };
+
       await axios.put(
         `${server}/user/updateStatus`,
         { email, applicationStatus: newStatus },
-        { withCredentials: true }
+        { headers, withCredentials: true }
       );
 
       toast.success("Status updated successfully");

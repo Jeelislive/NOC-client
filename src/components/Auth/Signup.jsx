@@ -10,7 +10,6 @@ import { server } from "../../../config";
 
 function Signup() {
   const [isLoading, setIsLoading] = useState(false);
-  const {storetokeninLS} = useAuth();
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const {
@@ -47,6 +46,7 @@ function Signup() {
         config
       );
       dispatch(userExist(data.user));
+      localStorage.setItem("token", data.token);
       toast.success(data.message, { id: toastId });
       if (data.user) {
         navigate("/login");
