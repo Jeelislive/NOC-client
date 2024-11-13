@@ -51,7 +51,6 @@ const App = () => {
   const loading = useCheckUser();
   const { user } = useSelector((state) => state.auth);
 
-  // Define your routes with the user prop passed to ProtectedRoute
   const router = createBrowserRouter(
     createRoutesFromElements(
       <Route path='/' element={<Layout />}>
@@ -108,13 +107,13 @@ const App = () => {
     )
   );
 
-  if (loading) return null; // Show nothing until loading is complete
+  if (loading) return null; 
 
   return <RouterProvider router={router} />;
 }
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  // <React.StrictMode>
+  <React.StrictMode>
     <Provider store={store}>
       <App />
       <Toaster position="bottom-center" />
