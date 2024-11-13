@@ -29,9 +29,22 @@ const useCheckUser = () => {
 
   useEffect(() => {
     const checkUser = async () => {
+      const token = localStorage.getItem('token');
+
+      if (!token) {
+        dispatch(userNotExist());
+        setLoading(false);
+        return;
+      }
+
       const toastId = toast.loading('Please Wait...');
+      
       try {
-        const { data } = await axios.get(`${server}/user/me`, { withCredentials: true });
+        const { data } = await axios.get(`${server}/user/me`, { withCredentials: true,
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+         });
         dispatch(userExist(data.user));
       } catch (error) {
         dispatch(userNotExist());

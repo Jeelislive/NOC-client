@@ -22,54 +22,43 @@ function UserList() {
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
+ 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        let response;
-        
+        const token = localStorage.getItem("token");
         const headers = {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
-        }
-        if (filterType === "all") {
-          response = await axios.get(`${server}/user/applicationlist`, {
-            params: { page: currentPage, limit },
-            headers,
-            withCredentials: true,
-          });
-        } else if (filterType === "fresh") {
-          response = await axios.get(`${server}/user/freshlist`, {
-            params: { page: currentPage, limit },
-            headers,
-            withCredentials: true,
-          });
-          console.log(response?.data);
-          if (response?.data?.length === 0) {
-            toast.error("No user has applied for a fresh application");
-          }
+        };
+        let url = `${server}/user/applicationlist`;
+        if (filterType === "fresh") {
+          url = `${server}/user/freshlist`
         } else if (filterType === "renewal") {
-          response = await axios.get(`${server}/user/renewallist`, {
-            params: { page: currentPage, limit },
-            headers,
-            withCredentials: true,
-          });
-          if (response?.data?.length === 0) {
-            toast.error("No user has applied for renewal");
-          }
+          url = `${server}/user/renewallist`
+        }
+        const { data } = await axios.get(url, {
+          params: { page: currentPage, limit, search: searchQuery }, 
+          headers,
+          withCredentials: true,
+        });
+
+        setUsers(data);
+        setTotalPages(data.totalPages || 1);
+
+        if(data.length === 0 && (filterType === "renewal" || filterType === "fresh")){
+          toast.error("No applications found for this filter.")
         }
 
-        if (response) {
-          setUsers(response?.data);
-          setTotalPages(response?.data?.totalPages || 1);
-        }
       } catch (error) {
+        // Handle error
         toast.error("Error fetching data: " + error.message);
-        console.error("Error fetching data:", error);
+        console.error("Error fetching user data", error);
       }
     };
 
     fetchData();
-  }, [currentPage, filterType]);
+  }, [currentPage, searchQuery, filterType]);
 
   const handlePageChange = (page) => {
     if (page >= 1 && page <= totalPages) {
