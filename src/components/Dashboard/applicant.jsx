@@ -96,10 +96,10 @@ function Applicant() {
 
     return (
         <div className="container mx-auto p-4 md:p-8">
-            <h1 className="text-4xl font-bold mb-8 text-center text-blue-600">Your Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-8 text-center" style={{color: '#212121'}}>Your Dashboard</h1>
 
             <div className="space-y-6">
-                <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 border-blue-600">
+                <div className="bg-white p-6 rounded-lg shadow-lg border-t-4 " style={{ borderColor: '#DC2626' }}>
                     <h2 className="text-2xl font-bold mb-4 text-gray-800">User Details</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -199,31 +199,13 @@ function Applicant() {
     );
 }
 
-function DashboardCard({ title, description, link, color }) {
-    const colors = {
-        yellow: {
-            bg: "bg-yellow-100 hover:bg-yellow-200",
-            text: "text-yellow-700",
-            btn: "bg-yellow-500 hover:bg-yellow-600"
-        },
-        blue: {
-            bg: "bg-blue-100 hover:bg-blue-200",
-            text: "text-blue-700",
-            btn: "bg-blue-500 hover:bg-blue-600"
-        },
-        orange: {
-            bg: "bg-orange-100 hover:bg-orange-200",
-            text: "text-orange-700",
-            btn: "bg-orange-500 hover:bg-orange-600"
-        }
-    };
-
+function DashboardCard({ title, description, link }) {
     return (
-        <div className={`${colors[color].bg} rounded-lg shadow-md p-6 text-center transition-colors duration-300`}>
-            <h2 className={`font-bold text-xl mb-2 ${colors[color].text}`}>{title}</h2>
+        <div className="bg-gray-100 hover:bg-gray-200 rounded-lg shadow-md p-6 text-center transition-colors duration-300">
+            <h2 className="font-bold text-xl mb-2 text-[#212121]">{title}</h2>
             <p className="text-gray-700 mb-4">{description}</p>
             <Link to={link}>
-                <button className={`${colors[color].btn} text-white px-6 py-3 rounded-lg font-medium transition-colors duration-300`}>
+                <button className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-300">
                     {title === 'Payment' ? 'Pay Now' : title.includes('Renewal') ? 'Renew Now' : 'Apply Now'}
                 </button>
             </Link>

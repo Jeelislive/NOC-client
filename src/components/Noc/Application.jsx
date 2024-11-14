@@ -4,8 +4,10 @@ import toast from 'react-hot-toast';
 import axios from 'axios';
 import { server } from '../../../config';
 import { useAuth } from '../../redux/auth';
+import { useNavigate } from 'react-router-dom';
 
 const Application = () => {
+  const  navigate  = useNavigate();
   const [formData, setFormData] = useState({
     approvedPlan: null,
     occupationCertificate: null,
@@ -75,6 +77,10 @@ const Application = () => {
     }
   };
 
+  const goBack = () => {
+    navigate(-1);
+  }
+
   return (
     <section className="flex items-center justify-center min-h-screen p-1">
       <div className="w-full max-w-5xl bg-white shadow-lg rounded-lg p-8 border border-gray-200">
@@ -86,6 +92,7 @@ const Application = () => {
             Please fill out the form and upload the required documents.
           </Typography>
         </div>
+       
         <form onSubmit={handleSubmit}>
 
           <h2 className="text-xl font-bold mt-8">Building Details</h2>
@@ -196,6 +203,9 @@ const Application = () => {
             Submit Application
           </Button>
         </form>
+        <p className="mt-6 text-gray-600 text-sm">
+                After submission, you will receive updates via email. Track your application using the online portal.
+            </p>
       </div>
     </section>
   );
