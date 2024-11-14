@@ -77,12 +77,12 @@ function Signup() {
           {/* Username Input */}
           <div className="mt-4 space-y-2">
             <label htmlFor="username" className="block font-medium text-gray-700 dark:text-gray-300">
-              Username
+              Name
             </label>
             <input
               type="text"
               id="username"
-              placeholder="Enter your username"
+              placeholder="Enter your fullname"
               className="w-full px-3 py-2 border rounded-md outline-none dark:bg-slate-800 dark:text-gray-200"
               {...register("username", { required: true })}
             />
