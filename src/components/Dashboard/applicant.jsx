@@ -130,6 +130,9 @@ function Applicant() {
                             </p>
                         </div>
                     </div>
+                    <p>
+                            <h5 className="text-gray-600 mt-3 font-medium">Your Application will be sent in your email after approval by inspector. if there is any query regarding your application plz share query on the contact section</h5>
+                    </p>
                 </div>
 
                 <div className="bg-white p-6 rounded-lg shadow-lg">
