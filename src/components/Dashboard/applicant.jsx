@@ -124,9 +124,9 @@ function Applicant() {
                         <div>
                             <p className="text-gray-600 font-medium">Checklist Status:</p>
                             <p className={`text-lg font-semibold capitalize ${
-                                userData.checklist?.isChecklistDone ? 'text-green-500' : 'text-red-500'
+                                userData?.isCheckListDone ? 'text-green-500' : 'text-red-500'
                             }`}>
-                                {userData.checklist?.isChecklistDone ? 'Done' : 'Pending'}
+                                {userData?.isCheckListDone ? 'Done' : 'Pending'}
                             </p>
                         </div>
                     </div>
