@@ -124,7 +124,6 @@ const Application = () => {
             onChange={onChange}
             ref={fileInputRef}
             className="hidden" // Keep hidden, button triggers it
-            required={required}
             accept=".pdf,.jpg,.jpeg,.png" // Specify acceptable file types
           />
           {value && (
