@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Button, Typography, Input, Checkbox } from "@material-tailwind/react";
+import React, { useState, useRef } from 'react';
+import { Button } from "@material-tailwind/react"; // Removed Checkbox
 import toast from 'react-hot-toast';
 import axios from 'axios';
 import { server } from '../../../config';
@@ -18,17 +18,23 @@ const Application = () => {
     buildingNOC: null,
   });
 
+  const [termsAgreed, setTermsAgreed] = useState(false); // State for checkbox
   const [buttonDisabled, setButtonDisabled] = useState(false);
 
   const handleChange = (e) => {
     const { name, files } = e.target;
-    if (files) {
+    if (files && files[0]) {
       const file = files[0];
-      if (file.size > 10485760) { // 10MB size limit
-        toast.error('File size exceeds 10MB');
+      if (file.size > 10 * 1024 * 1024) { // 10MB size limit
+        toast.error(`File ${file.name} exceeds 10MB limit.`);
+        e.target.value = null; // Clear the input
+        setFormData(prev => ({ ...prev, [name]: null }));
         return;
       }
       setFormData(prev => ({ ...prev, [name]: file }));
+    } else {
+      // Handle case where file is deselected
+      setFormData(prev => ({ ...prev, [name]: null }));
     }
   };
 
@@ -64,13 +70,14 @@ const Application = () => {
       
       // Reset file inputs
       document.querySelectorAll('input[type="file"]').forEach(input => {
-        input.value = ''; // Clear the file input
+        input.value = ''; // This might not be fully effective with controlled components / refs
       });
+      setTermsAgreed(false); // Reset terms agreement
 
       setButtonDisabled(true);
       setTimeout(() => {
         setButtonDisabled(false);
-      }, 30000);
+      }, 30000); // 30 seconds cooldown
 
     } catch (error) {
       toast.error(error?.response?.data?.message || "Something went wrong", { id: toastId });
@@ -81,133 +88,160 @@ const Application = () => {
     navigate(-1);
   }
 
+  // Helper component for styled file input
+  const StyledFileInput = ({ label, name, description, listItems, required, value, onChange }) => {
+    const fileInputRef = useRef(null);
+    const handleFileButtonClick = () => {
+      fileInputRef.current.click();
+    };
+
+    return (
+      <div className="space-y-2 flex flex-col"> {/* Ensure full height for border if needed */}
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
+        {listItems && (
+          <ul className="list-disc list-inside text-xs text-gray-500 dark:text-gray-400 pl-4 space-y-1 mt-1">
+            {listItems.map((item, index) => <li key={index}>{item}</li>)}
+          </ul>
+        )}
+        <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+          <button
+            type="button"
+            onClick={handleFileButtonClick}
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="inline-block h-4 w-4 mr-2 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {value ? "Change File" : "Select File"}
+          </button>
+          <input
+            type="file"
+            name={name}
+            id={name}
+            onChange={onChange}
+            ref={fileInputRef}
+            className="hidden" // Keep hidden, button triggers it
+            required={required}
+            accept=".pdf,.jpg,.jpeg,.png" // Specify acceptable file types
+          />
+          {value && (
+            <div className="mt-2 sm:mt-0 flex items-center text-sm text-gray-600 dark:text-gray-400">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="truncate" title={value.name}>{value.name} ({(value.size / 1024 / 1024).toFixed(2)} MB)</span>
+            </div>
+          )}
+        </div>
+        {!value && required && <p className="text-xs text-red-600 mt-1">This field is required.</p>}
+        {value && value.size > 10 * 1024 * 1024 && <p className="text-xs text-red-500 mt-1">File exceeds 10MB limit.</p>}
+      </div>
+    );
+  };
+
+  const formFields = [
+    { name: "approvedPlan", label: "1. Approved Plan", description: "Copy of approved plan from competent authority (layout, entrance/exit, stairs, lifts).", required: true },
+    { name: "occupationCertificate", label: "2. Occupation Certificate", description: "Occupation certificate for the nursing home.", required: true },
+    { name: "registrationCertificate", label: "3. Registration Certificate", description: "Registration certificate for the nursing home.", required: true },
+    { name: "complianceCertificate", label: "4. Compliance Certificate (Kitchen)", description: "Compliance certificate if kitchen facility is available (if applicable).", required: false },
+    { name: "architectPlan", label: "5. Architect Plan (Detailed)", description: "Detailed architect plan with markings for access roads, staircases, exits, etc.",
+      listItems: [
+        "Access road (name & width)", "Staircase locations & widths", "Premises area (sq. mtrs)",
+        "Max occupant load (NBC/DCR)", "Entrance/exit/passage locations & widths", "Loft/Mezzanine details (if any)",
+        "Operation Theater, Lab, Oxygen, Glass façade, Storage areas", "Main electrical switchboard location",
+        "Fire Resistant Door locations", "LPG/PNG installation & pipeline", "Fire-fighting equipment locations (sprinklers, detectors)"
+      ],
+      required: true },
+    { name: "areaCertificate", label: "6. Area & Height Certificate", description: "Area certificate and building height (in meters) from an architect.", required: true },
+    { name: "buildingNOC", label: "7. Previous Building NOC", description: "Previously issued Building NOC from Fire Dept. (if applicable).", required: false },
+  ];
+
   return (
-    <section className="flex items-center justify-center min-h-screen p-1">
-      <div className="w-full max-w-5xl bg-white shadow-lg rounded-lg p-8 border border-gray-200">
-        <div className="text-center mb-6">
-          <Typography variant="h2" className="font-bold mb-4">
-            FIRE NOC Application Form
-          </Typography>
-          <Typography variant="paragraph" color="blue-gray" className="text-lg font-normal">
-            Please fill out the form and upload the required documents.
-          </Typography>
+    // Removed min-h-screen and bg-gray-50/dark:bg-gray-900 from here, Layout.jsx handles it.
+    // py-8 sm:py-12 px-4 also handled by Layout.jsx's main tag.
+    <>
+      <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-xl p-6 sm:p-8 md:p-10 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center mb-6 sm:mb-8">
+            <button
+              onClick={goBack}
+              className="flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 mr-3 sm:mr-4 w-10 h-10 rounded-full transition-colors"
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex-grow text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+                    Fire NOC Application Form
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
+                    Please fill out the form and upload the required documents (max 10MB per file, PDF/JPG/PNG).
+                </p>
+            </div>
         </div>
        
-        <form onSubmit={handleSubmit}>
-
-          <h2 className="text-xl font-bold mt-8">Building Details</h2>
-
-          <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="approvedPlan" className="block mb-2 text-sm font-medium text-gray-700">
-                1. Approved Plan
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                A copy of the approved plan from the competent authority showing layout (Building/Premises), location of main entrance / exit / staircase / lifts / fire lift etc.
-              </Typography>
-              <Input type="file" name="approvedPlan" onChange={handleChange} required />
-            </div>
-
-            <div>
-              <label htmlFor="occupationCertificate" className="block mb-2 text-sm font-medium text-gray-700">
-                2. Occupation Certificate
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                The occupation certificate for the nursing home.
-              </Typography>
-              <Input type="file" name="occupationCertificate" onChange={handleChange} required />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6 border-b border-gray-300 dark:border-gray-600 pb-3">
+                Building & Document Details
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
+              {formFields.map(field => (
+                <StyledFileInput
+                  key={field.name}
+                  label={field.label}
+                  name={field.name}
+                  description={field.description}
+                  listItems={field.listItems}
+                  required={field.required}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                />
+              ))}
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="registrationCertificate" className="block mb-2 text-sm font-medium text-gray-700">
-                3. Registration Certificate
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                Registration certificate for the nursing home.
-              </Typography>
-              <Input type="file" name="registrationCertificate" onChange={handleChange} required />
-            </div>
-
-            <div>
-              <label htmlFor="complianceCertificate" className="block mb-2 text-sm font-medium text-gray-700">
-                4. Compliance Certificate (if applicable)
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                Compliance certificate if a kitchen facility is available in the nursing home.
-              </Typography>
-              <Input type="file" name="complianceCertificate" onChange={handleChange} />
-            </div>
+          <div className="pt-6 border-t border-gray-300 dark:border-gray-600">
+            <label htmlFor="termsAgreed" className="flex items-center cursor-pointer group">
+              <input
+                type="checkbox"
+                id="termsAgreed"
+                checked={termsAgreed}
+                onChange={(e) => setTermsAgreed(e.target.checked)}
+                className="h-5 w-5 rounded border-gray-300 dark:border-gray-500 text-red-600 focus:ring-2 focus:ring-red-500 dark:focus:ring-red-600 dark:ring-offset-gray-800 bg-gray-50 dark:bg-gray-700 group-hover:border-red-500 transition-colors"
+              />
+              <span className="ml-3 text-sm text-gray-700 dark:text-gray-300 group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors">
+                I agree to the&nbsp;
+                <a href="/terms" target="_blank" rel="noopener noreferrer" className="font-medium text-red-600 dark:text-red-500 hover:underline">
+                  terms and conditions
+                </a>.
+              </span>
+            </label>
+            {!termsAgreed && <p className="text-xs text-red-500 mt-1.5 pl-8">You must agree to the terms and conditions to proceed.</p>}
           </div>
 
-          <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="architectPlan" className="block mb-2 text-sm font-medium text-gray-700">
-                5. Architect Plan
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                A detailed plan from an architect with all required markings such as access roads, staircases, entrances, exits, etc.
-                <ul className="list-disc ml-6">
-                  <li>a) Location of Access road (name of road & its width) for the premises.</li>
-                  <li>b) Location of Staircases with its width on the premises.</li>
-                  <li>c) Area of the premises in sq. mtrs. </li>
-                  <li>d) Maximum number of people including staff calculated as per occupant load factor mentioned in NBC/DCR.</li>
-                  <li>e) Location & width of all entrances, exits & internal passages.</li>
-                  <li>f) Location of Loft / Mezzanine floor along with staircase for Loft / mezzanine Floor as certified by competent Authority.</li>
-                  <li>g) Location of Operation Theater, Pathology Laboratory, Oxygen Cylinder / Bank / Tank, Opening of Glass façade, Storage area used in said premises.</li>
-                  <li>h) Location of main electrical switch board</li>
-                  <li>i) Location of Fire Resistant Door.</li>
-                  <li>j) Location of L.P.G. / P.N.G. installation and supply pipe line if any.</li>
-                  <li>k) Location of fire-fighting equipment / installation including sprinkler / Detector etc.</li>
-                </ul>
-              </Typography>
-              <Input type="file" name="architectPlan" onChange={handleChange} required />
-            </div>
-
-            <div>
-              <label htmlFor="areaCertificate" className="block mb-2 text-sm font-medium text-gray-700">
-                6. Area Certificate
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                Area certificate along with the building height in meters from an architect.
-              </Typography>
-              <Input type="file" name="areaCertificate" onChange={handleChange} required />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 gap-4 mt-4 md:grid-cols-2">
-            <div>
-              <label htmlFor="buildingNOC" className="block mb-2 text-sm font-medium text-gray-700">
-                7. Previous Building NOC
-              </label>
-              <Typography variant="small" color="gray" className="mb-2">
-                Previous issued Building NOC from Fire Department - if Issued.
-              </Typography>
-              <Input type="file" name="buildingNOC" onChange={handleChange} />
-            </div>
-          </div>
-
-          <Checkbox
-            label={
-              <Typography variant="small" color="gray" className="flex items-center justify-start font-medium">
-                I agree to the 
-                <a href="/terms" className="text-gray-700 underline ml-1">terms and conditions</a>.
-              </Typography> 
+          <button
+            type="submit"
+            className="w-full py-3 text-base font-medium shadow-md hover:shadow-lg transition-all text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              buttonDisabled ||
+              !termsAgreed ||
+              Object.values(formData).some(val => val && val.size > 10 * 1024 * 1024) ||
+              formFields.some(field => field.required && !formData[field.name])
             }
-            className="mt-6 mb-2"
-            required
-          />
-
-          <Button type="submit" color="blue" className="w-full mt-8 bg-[#212121]" disabled={buttonDisabled}>
-            Submit Application
-          </Button>
+          >
+            {buttonDisabled ? "Submitting..." : "Submit Application"}
+          </button>
         </form>
-        <p className="mt-6 text-gray-600 text-sm">
-                After submission, you will receive updates via email. Track your application using the online portal.
-            </p>
+        <p className="mt-8 text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          After submission, you will receive updates via email. You can also track your application status on your dashboard.
+        </p>
       </div>
-    </section>
+    </>
   );
 };
 

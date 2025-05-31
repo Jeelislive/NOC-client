@@ -9,7 +9,19 @@ import { IoArrowBack } from 'react-icons/io5';
 const Checklist = () => {
   const location = useLocation();
   const  navigate  = useNavigate();
-  const { email } = location.state;
+  const email = location.state?.email;
+
+  useEffect(() => {
+    if (!email) {
+      toast.error("Email not provided. Redirecting to dashboard.");
+      // Replace the current entry in the history stack and clear state
+      navigate("/dashboard/applicationlist", { replace: true, state: null });
+    }
+  }, [email, navigate]);
+
+  if (!email) {
+    return null; // Or a loading spinner, or some placeholder
+  }
 
   const checklistCategories = [
     {
@@ -78,8 +90,21 @@ const Checklist = () => {
         }
     
       } catch (error) {
-        console.error("Error fetching complete checklist:", error);
-        toast.error("Error fetching complete checklist items.");
+        console.error("Error fetching complete checklist items:", error);
+        let errorMessage = "Error fetching complete checklist items.";
+        if (error.message) { // Standard JS error message
+          errorMessage += ` (${error.message})`;
+        }
+        // Axios specific error structure
+        if (error.isAxiosError && error.response) {
+          errorMessage += ` Server responded with status ${error.response.status}.`;
+          if(error.response.data && error.response.data.message) {
+            errorMessage += ` Message: ${error.response.data.message}`;
+          }
+        } else if (error.isAxiosError && error.request) {
+          errorMessage += " No response received from server.";
+        }
+        toast.error(errorMessage);
       }
     };
     
@@ -174,76 +199,84 @@ const Checklist = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto bg-white p-6 sm:p-8 rounded-lg shadow-lg border border-gray-200 mt-4 mb-4">
-  <div className="flex items-center mb-4">
-    <button
-      onClick={goBack}
-      className="flex items-center text-white bg-[#212121] mr-4 py-2 px-4 text-lg rounded-full"
-    >
-      <IoArrowBack className="mr-1" />
-    </button>
-    <h2 className="text-3xl font-extrabold text-gray-900 text-center w-full">Checklist for Inspection</h2>
-  </div>
+    <div className="max-w-5xl mx-auto bg-white dark:bg-gray-800 p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl my-6 border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center mb-6 sm:mb-8">
+        <button
+          onClick={goBack}
+          className="flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 mr-3 sm:mr-4 w-10 h-10 rounded-full transition-colors"
+          aria-label="Go back"
+        >
+          <IoArrowBack size={20} />
+        </button>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white flex-grow text-center sm:text-left">
+          Checklist for Inspection
+        </h1>
+      </div>
 
-  <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg">
-    <h3 className="text-xl font-semibold text-gray-900 mb-4">Checklist Details</h3>
-    <p className="text-gray-700 mb-4">
-      <ul className="list-disc pl-5 text-gray-700">
-        <li>Inspect all items listed under each category to ensure compliance with fire safety regulations.</li>
-        <li>Each item should be checked off only when it has been fully inspected and verified.</li>
-      </ul>
-      <strong>Instructions:</strong> To begin the inspection, review each category and its items carefully. As you inspect each requirement, check the corresponding box to indicate compliance. If any item is not compliant, leave the box unchecked and follow up with the necessary actions. Once the inspection is completed, submit the checklist for review and approval.
-    </p>
+      <div className="mb-8 p-4 sm:p-6 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow">
+        <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 dark:text-white mb-3 sm:mb-4">Checklist Details & Instructions</h2>
+        <div className="space-y-3 text-sm sm:text-base text-gray-700 dark:text-gray-300">
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Inspect all items listed under each category to ensure compliance with fire safety regulations.</li>
+            <li>Each item should be checked off only when it has been fully inspected and verified.</li>
+          </ul>
+          <p>
+            <strong>Instructions:</strong> To begin the inspection, review each category and its items carefully. As you inspect each requirement, check the corresponding box to indicate compliance. If any item is not compliant, leave the box unchecked and follow up with the necessary actions. Once the inspection is completed, submit the checklist for review and approval.
+          </p>
+          <p>
+            After completing the inspection, you can submit the checklist and proceed with further steps, such as sending an email notification if necessary. If you need any assistance, feel free to contact the Fire Department.
+          </p>
+        </div>
+      </div>
 
-    <p className="text-gray-700">
-      After completing the inspection, you can submit the checklist and proceed with further steps, such as sending an email notification if necessary. If you need any assistance, feel free to contact the Fire Department.
-    </p>
-  </div>
+      {checklistCategories.map((category) => (
+        <div key={category.name} className="mb-8 sm:mb-10 last:mb-0">
+          <h3 className="text-xl sm:text-2xl font-semibold mb-4 sm:mb-5 text-gray-800 dark:text-white border-b border-gray-300 dark:border-gray-600 pb-2 sm:pb-3">
+            {category.name.replace(/([A-Z])/g, ' $1').trim()} {/* Adds spaces before capitals */}
+          </h3>
+          <ul className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-3 sm:gap-y-4">
+            {category.items.map((item) => (
+              <li key={item} className="flex items-center p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <input
+                  type="checkbox"
+                  id={`${category.name}-${item}`}
+                  className="form-checkbox h-5 w-5 text-indigo-600 dark:text-indigo-400 rounded border-gray-300 dark:border-gray-500 focus:ring-indigo-500 dark:focus:ring-indigo-400 bg-white dark:bg-gray-600"
+                  checked={checklist[category.name]?.[item] || false}
+                  onChange={() => handleCheckboxChange(category.name, item)}
+                />
+                <label htmlFor={`${category.name}-${item}`} className="ml-3 text-sm sm:text-base text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                  {item}
+                </label>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
 
-  {checklistCategories.map((category) => (
-    <div key={category.name} className="mb-10">
-      <h3 className="text-2xl font-bold mb-5 text-gray-800 border-b pb-2">{category.name}</h3>
-      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pl-2">
-        {category.items.map((item) => (
-          <li key={item} className="flex items-center space-x-3">
-            <input
-              type="checkbox"
-              id={`${category.name}-${item}`}
-              className="form-checkbox h-5 w-5 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
-              checked={checklist[category.name]?.[item] || false}
-              onChange={() => handleCheckboxChange(category.name, item)}
-            />
-            <label htmlFor={`${category.name}-${item}`} className="text-gray-700">
-              {item}
-            </label>
-          </li>
-        ))}
-      </ul>
+      <div className="flex flex-col sm:flex-row sm:justify-end mt-8 sm:mt-10 pt-6 border-t border-gray-200 dark:border-gray-600 space-y-3 sm:space-y-0 sm:space-x-3">
+        <Button
+          onClick={handleSubmit}
+          className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all"
+        >
+          Submit Inspection
+        </Button>
+        <Button
+          onClick={sendEmailNotification}
+          disabled={!email}
+          className={`w-full sm:w-auto py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all ${
+            !email ? 'bg-gray-300 dark:bg-gray-600 cursor-not-allowed text-gray-500 dark:text-gray-400' : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+        >
+          Send Email
+        </Button>
+        <Button
+          variant="outlined"
+          className="w-full sm:w-auto border-indigo-500 text-indigo-600 hover:bg-indigo-50 dark:border-indigo-400 dark:text-indigo-300 dark:hover:bg-gray-700 py-2.5 px-5 rounded-lg shadow-md hover:shadow-lg transition-all"
+        >
+          View Worklist
+        </Button>
+      </div>
     </div>
-  ))}
-
-  <div className="flex flex-col sm:flex-row sm:justify-end mt-8 space-y-4 sm:space-y-0 sm:space-x-4">
-    <Button
-      onClick={handleSubmit}
-      className="bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg w-full sm:w-auto"
-    >
-      Submit Inspection
-    </Button>
-    <Button
-      onClick={sendEmailNotification}
-      disabled={!email}
-      className={`py-2 px-4 rounded-lg w-full sm:w-auto ${!email ? 'bg-gray-300 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600 text-white'}`}
-    >
-      Send Email
-    </Button>
-    <Button
-      variant="outlined"
-      className="border-indigo-600 text-indigo-600 hover:border-indigo-700 hover:text-indigo-700 py-2 px-4 rounded-lg w-full sm:w-auto"
-    >
-      View Worklist
-    </Button>
-  </div>
-</div>
 
 );
 };

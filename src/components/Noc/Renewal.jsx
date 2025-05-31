@@ -1,5 +1,5 @@
-import { Button } from "@material-tailwind/react";
-import React, { useState } from "react";
+import { Button } from "@material-tailwind/react"; // Keep Button for now, can be replaced if needed
+import React, { useState, useRef } from "react"; // Added useRef
 import axios from "axios";
 import toast from "react-hot-toast";
 import { server } from "../../../config";
@@ -16,22 +16,26 @@ const Renewal = () => {
     fireNoc: null,
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false); // For cooldown
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(-1); 
+    navigate(-1);
   };
 
   const handleChange = (e) => {
     const { name, files } = e.target;
     if (files && files[0]) {
       const file = files[0];
-      if (file.size > 10485760) {
-        // 10MB size limit
-        toast.error("File size exceeds 10MB");
+      if (file.size > 10 * 1024 * 1024) { // 10MB size limit
+        toast.error(`File ${file.name} exceeds 10MB limit.`);
+        e.target.value = null; // Clear the input
+        setFormData(prev => ({ ...prev, [name]: null }));
         return;
       }
       setFormData((prev) => ({ ...prev, [name]: file }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: null }));
     }
   };
 
@@ -67,10 +71,16 @@ const Renewal = () => {
         maintenanceCertificateContractor: null,
         fireNoc: null,
       });
-      // Clear file inputs
-      document.querySelectorAll('input[type="file"]').forEach((input) => {
-        input.value = ""; // Clear the file input
-      });
+      // Clear file inputs - resetting formData state is the primary way
+      // document.querySelectorAll('input[type="file"]').forEach((input) => {
+      //   input.value = "";
+      // });
+
+      setIsSubmitting(true);
+      setTimeout(() => {
+        setIsSubmitting(false);
+      }, 30000); // 30 seconds cooldown
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Something went wrong", {
         id: toastId,
@@ -78,248 +88,183 @@ const Renewal = () => {
     }
   };
 
-  return (
+  // Helper component for styled file input
+  const StyledFileInput = ({ label, name, description, required, value, onChange, multiple = false }) => {
+    const fileInputRef = useRef(null);
+    const handleFileButtonClick = () => {
+      fileInputRef.current.click();
+    };
+
+    let displayValue = "";
+    let totalSizeMB = 0;
+    if (value) {
+      if (multiple && value.length > 0) {
+        displayValue = `${value.length} file(s) selected`;
+        totalSizeMB = Array.from(value).reduce((sum, file) => sum + file.size, 0) / 1024 / 1024;
+      } else if (!multiple && value.name) {
+        displayValue = value.name;
+        totalSizeMB = value.size / 1024 / 1024;
+      }
+    }
     
-    <div className="max-w-4xl mx-auto bg-white p-8 rounded-lg shadow-lg border border-gray-300">
-      <h1 className="text-3xl text-center font-bold mb-2 text-gray-900">
-        Renewal of Fire-No Objection Certificate
-      </h1>
-      
-      <p className="mb-6 text-center text-gray-700">
-        Please follow the instructions carefully and ensure all required
-        documents are uploaded.
-      </p>
+    const hasError = value && (multiple ? Array.from(value).some(f => f.size > 10 * 1024 * 1024) : value.size > 10 * 1024 * 1024);
 
-      <form onSubmit={handleSubmit} method="POST">
-        {/* Application Form Field */}
-        <div className="mb-6">
-          <label
-            htmlFor="application-form"
-            className="block text-sm font-semibold text-gray-900 mb-1"
+    return (
+      <div className="space-y-2 flex flex-col">
+        <label htmlFor={name} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
+        <div className="mt-2 flex flex-col sm:flex-row sm:items-center sm:gap-3">
+          <button
+            type="button"
+            onClick={handleFileButtonClick}
+            className="w-full sm:w-auto px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 dark:focus:ring-offset-gray-800"
           >
-            Application Form
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload the completed application form, signed by the applicant, in
-            PDF format.
-          </p>
+            <svg xmlns="http://www.w3.org/2000/svg" className="inline-block h-4 w-4 mr-2 align-middle" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+            {displayValue ? (multiple ? "Change Files" : "Change File") : (multiple ? "Select Files" : "Select File")}
+          </button>
           <input
             type="file"
-            id="application-form"
-            name="applicationForm"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
+            name={name}
+            id={name}
+            onChange={onChange}
+            ref={fileInputRef}
+            className="hidden"
+            required={required}
+            multiple={multiple}
+            accept=".pdf,.jpg,.jpeg,.png" // Specify acceptable file types
           />
+          {displayValue && (
+            <div className="mt-2 sm:mt-0 flex items-center text-sm text-gray-600 dark:text-gray-400">
+               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="truncate" title={displayValue}>{displayValue} {totalSizeMB > 0 && `(${totalSizeMB.toFixed(2)} MB)`}</span>
+            </div>
+          )}
+        </div>
+        {!value && required && <p className="text-xs text-red-500 mt-1">This field is required.</p>}
+        {hasError && <p className="text-xs text-red-500 mt-1">One or more files exceed the 10MB limit.</p>}
+      </div>
+    );
+  };
+
+  const renewalFormFields = [
+    { name: "applicationForm", label: "Application Form", description: "Completed and signed application form (PDF).", required: true },
+    { name: "selfDeclaration", label: "Self Declaration & Photo ID", description: "Self-declaration and government-issued photo ID.", required: true },
+    { name: "fireExtinguisherRegister", label: "Fire Extinguisher Register (Annexure - F)", description: "Register of fire extinguishers and their status.", required: true },
+    { name: "fireFightingPhotos", label: "Photos of Fire Fighting System & Open Spaces", description: "Multiple photos of equipment, systems, and safety access spaces.", required: true, multiple: true },
+    { name: "maintenanceCertificateOwner", label: "Annual Maintenance Certificate by Owner (Annexure - I)", description: "Owner/occupier issued annual maintenance certificate.", required: true },
+    { name: "maintenanceCertificateContractor", label: "Annual Maintenance Certificate by Contractor (Annexure - I & Annexure)", description: "Licensed fire contractor/agency issued annual maintenance certificate.", required: true },
+    { name: "fireNoc", label: "Previous Fire NOC / Renewal", description: "Original or most recent Fire NOC or renewal certificate.", required: true },
+  ];
+
+  return (
+    // Removed min-h-screen and bg-gray-50/dark:bg-gray-900 from here, Layout.jsx handles it.
+    <>
+      <div className="w-full max-w-4xl mx-auto bg-white dark:bg-gray-800 shadow-2xl rounded-xl p-6 sm:p-8 md:p-10 border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center mb-6 sm:mb-8">
+            <button
+              onClick={handleBack}
+              className="flex items-center justify-center text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 mr-3 sm:mr-4 w-10 h-10 rounded-full transition-colors"
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <div className="flex-grow text-center sm:text-left">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
+                    Renewal of Fire NOC
+                </h1>
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300 mt-1">
+                    Please fill out the form and upload the required documents (max 10MB per file, PDF/JPG/PNG).
+                </p>
+            </div>
         </div>
 
-        {/* Self Declaration and Photo ID */}
-        <div className="mb-6">
-          <label
-            htmlFor="self-declaration"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Self Declaration and Photo ID Proof
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload a self-declaration statement and a government-issued photo ID
-            (such as a passport or driver's license).
-          </p>
-          <input
-            type="file"
-            id="self-declaration"
-            name="selfDeclaration"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div>
+            <h2 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100 mb-6 border-b border-gray-300 dark:border-gray-600 pb-3">
+                Required Documents for Renewal
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-7">
+              {renewalFormFields.map(field => (
+                <StyledFileInput
+                  key={field.name}
+                  label={field.label}
+                  name={field.name}
+                  description={field.description}
+                  required={field.required}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  multiple={field.multiple}
+                />
+              ))}
+            </div>
+          </div>
+          
+          <div className="space-y-6 pt-6 border-t border-gray-300 dark:border-gray-600">
+            <div className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm">
+              <h3 className="text-md sm:text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                Site Inspection and Payment Process
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
+                You will be prompted to make a payment for the site inspection. Upon payment completion:
+              </p>
+              <ol className="list-decimal list-inside space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                <li>The Fire Officer will conduct the site inspection.</li>
+                <li>If any queries are raised, you will be notified. Please respond promptly.</li>
+                <li>Once approved, applicable charges will be updated on the portal.</li>
+                <li>The ‘Proceed to Payment’ option will become available for the final NOC.</li>
+                <li>After successful payment, the Final Certificate will be generated.</li>
+              </ol>
+            </div>
 
-        {/* Register of Fire Extinguisher */}
-        <div className="mb-6">
-          <label
-            htmlFor="fire-extinguisher-register"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Register of Fire Extinguisher (Annexure - F)
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Provide the register listing all fire extinguishers present on the
-            premises, including their maintenance status.
-          </p>
-          <input
-            type="file"
-            id="fire-extinguisher-register"
-            name="fireExtinguisherRegister"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
+            <div className="p-4 sm:p-6 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm">
+              <h3 className="text-md sm:text-lg font-semibold text-gray-800 dark:text-white mb-3">
+                Fee Details & Timeline
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 text-xs sm:text-sm text-gray-600 dark:text-gray-300 mb-3">
+                <li>Site Inspection Fees: Rs. 2500/- per block</li>
+                <li>Fire NOC Issuance Fees: Rs. 1000/-</li>
+              </ul>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">
+                <strong>Timeline:</strong> Approx. 7 working days (excluding applicant response time).
+              </p>
+              <p className="mt-3 text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+                For assistance, please contact the Fire Department.
+              </p>
+            </div>
+          </div>
 
-        {/* Photographs of Fire Fighting System */}
-        <div className="mb-6">
-          <label
-            htmlFor="fire-fighting-photos"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Photographs of Fire Fighting System and Marginal Open Spaces/Set
-            Back
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload multiple photographs showing the fire-fighting equipment,
-            systems, and open spaces required for safety access.
-          </p>
-          <input
-            type="file"
-            id="fire-fighting-photos"
-            name="fireFightingPhotos"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            multiple
-            required
-          />
-          <p className="mt-2 text-xs text-gray-600">
-            You can upload multiple files here.
-          </p>
-        </div>
-
-        {/* Annual Maintenance Certificate by Owner */}
-        <div className="mb-6">
-          <label
-            htmlFor="maintenance-certificate-owner"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Annual Maintenance Certificate by Owner/Occupier (Annexure - I)
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload the annual maintenance certificate issued by the owner or
-            occupier, certifying fire system maintenance.
-          </p>
-          <input
-            type="file"
-            id="maintenance-certificate-owner"
-            name="maintenanceCertificateOwner"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        {/* Annual Maintenance Certificate by Fire Contractor */}
-        <div className="mb-6">
-          <label
-            htmlFor="maintenance-certificate-contractor"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Annual Maintenance Certificate by Fire Contractor/Agency (Annexure -
-            I & Annexure)
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload the annual maintenance certificate from a licensed fire
-            contractor or agency, certifying compliance.
-          </p>
-          <input
-            type="file"
-            id="maintenance-certificate-contractor"
-            name="maintenanceCertificateContractor"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        {/* Final No Objection Certificate */}
-        <div className="mb-6">
-          <label
-            htmlFor="fire-noc"
-            className="block text-sm font-semibold text-gray-900 mb-1"
-          >
-            Final No Objection Certificate/Renewal of Fire NOC
-          </label>
-          <p className="text-xs text-gray-600 mb-2">
-            Upload the original or most recent Fire NOC or renewal certificate
-            issued by the fire department.
-          </p>
-          <input
-            type="file"
-            id="fire-noc"
-            name="fireNoc"
-            onChange={handleChange}
-            className="block w-full border border-gray-300 rounded-lg p-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            required
-          />
-        </div>
-
-        {/* Additional Instructions */}
-        <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Site Inspection and Payment
-          </h3>
-          <p className="text-gray-700 mb-4">
-            You will be prompted to make a payment for the site inspection. Upon
-            payment completion:
-          </p>
-          <ol className="list-decimal pl-5 text-gray-700 mb-6">
-            <li>The Fire Officer will conduct the site inspection.</li>
-            <li>
-              If any queries are raised, you will be notified via your
-              registered mobile number. Respond to any queries as needed.
-            </li>
-            <li>
-              Once the application is approved, applicable charges will be
-              updated on the portal.
-            </li>
-            <li>
-              The ‘Proceed to Payment’ option will become available for the
-              final NOC.
-            </li>
-            <li>
-              Upon successful payment, the application status will change to
-              ‘Payment Successful’, and the Final Certificate (Fire NOC Renewal
-              External) will be generated.
-            </li>
-          </ol>
-        </div>
-
-        {/* Fee & Payment Instructions */}
-        <div className="mb-6 p-4 bg-gray-100 border border-gray-300 rounded-lg">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
-            Fee Details
-          </h3>
-          <p className="text-gray-700 mb-4">
-            <ul className="list-disc pl-5 text-gray-700">
-              <li>Site Inspection Fees: Rs. 2500/- per block</li>
-              <li>Fire NOC Issuance Fees: Rs. 1000/-</li>
-            </ul>
-            <strong>Timeline:</strong> The complete process for issuance of the
-            license takes approximately 7 working days, excluding the time taken
-            by the applicant to provide necessary inputs.
-          </p>
-
-          <p className="text-gray-700">
-            Thank you for using the online service. If you have any questions,
-            please contact the Fire Department for assistance.
-          </p>
-        </div>
-
-        {/* Submit Button */}
-        <div className="mb-4">
-          <Button
+          <button
             type="submit"
-            color="blue"
-            className="w-full mt-8 bg-[#212121]"
+            className="w-full py-3 text-base font-medium shadow-md hover:shadow-lg transition-all text-white bg-red-600 hover:bg-red-700 focus:ring-4 focus:outline-none focus:ring-red-300 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={
+              isSubmitting ||
+              renewalFormFields.some(field => field.required && !formData[field.name]) ||
+              Object.values(formData).some(val => {
+                if (!val) return false;
+                if (Array.isArray(val)) {
+                  return val.some(f => f.size > 10 * 1024 * 1024);
+                }
+                return val.size > 10 * 1024 * 1024;
+              })
+            }
           >
-            Submit Application
-          </Button>
-        </div>
-      </form>
+            {isSubmitting ? "Submitting..." : "Submit Renewal Application"}
+          </button>
+        </form>
 
-      <p className="mt-6 text-gray-600 text-sm">
-        After submission, you will receive updates via email. Track your
-        application using the online portal.
-      </p>
-    </div>
+        <p className="mt-8 text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+          After submission, you will receive updates via email. Track your application on your dashboard.
+        </p>
+      </div>
+    </>
   );
 };
 

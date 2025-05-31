@@ -20,8 +20,10 @@ import Application from './components/Noc/Application.jsx';
 import Renewal from './components/Noc/Renewal.jsx';
 import Checklist from './components/Noc/CheckList.jsx';
 import ApplicationList from './components/Noc/ApplicationList.jsx';
+import PaymentPlaceholder from './components/Payment/PaymentPlaceholder.jsx'; // Import PaymentPlaceholder
 import { server } from '../config.js';
 import { AuthProvider } from './redux/auth.jsx';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 // Custom hook to check user status
 const useCheckUser = () => {
@@ -112,14 +114,22 @@ const App = () => {
       <Route 
          path='dashboard/applicationlist' 
          element={
-          <ProtectedRoute user={user} allowedRoles={['inspector']}>
-          <ApplicationList />
-        </ProtectedRoute>
-          }
-        />  
-      </Route>
-    )
-  );
+           <ProtectedRoute user={user} allowedRoles={['inspector']}>
+             <ApplicationList />
+           </ProtectedRoute>
+         }
+       />
+       <Route
+         path='payment'
+         element={
+           <ProtectedRoute user={user} allowedRoles={['applicant']}> {/* Assuming only applicants see payment */}
+             <PaymentPlaceholder />
+           </ProtectedRoute>
+         }
+       />
+     </Route>
+   )
+ );
 
   if (loading) return null; 
 
@@ -128,11 +138,13 @@ const App = () => {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
       //  <React.StrictMode>
-   <AuthProvider>
-     <Provider store={store}>
-      <App />
-      <Toaster position="bottom-center" />
-    </Provider>
-   </AuthProvider>
-  //  </React.StrictMode>
-);
+      <GoogleOAuthProvider clientId="1032827776743-4qef213bihsvnm452v3l77c80svaajpi.apps.googleusercontent.com">
+        <AuthProvider>
+          <Provider store={store}>
+            <App />
+            <Toaster position="bottom-center" />
+          </Provider>
+        </AuthProvider>
+      </GoogleOAuthProvider>
+      //  </React.StrictMode>
+    );
