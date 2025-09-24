@@ -1,9 +1,5 @@
  # Frontend
  
- [![CI](https://img.shields.io/github/actions/workflow/status/your-org/your-repo/ci.yml?label=CI&logo=github)](https://github.com/your-org/your-repo/actions)
- [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
- [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
- 
  A fast, accessible, and modular frontend built with React. Designed with developer experience and a clean architecture in mind.
  
  - Live demo: https://your-frontend-demo.example.com
@@ -236,3 +232,4 @@
  
  - React, Vite, and the OSS community
  - ESLint, Prettier, and Testing Library teams
+
