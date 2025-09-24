@@ -2,11 +2,6 @@
  
  A fast, accessible, and modular frontend built with React. Designed with developer experience and a clean architecture in mind.
  
- - Live demo: https://your-frontend-demo.example.com
- - Issue tracker: https://github.com/your-org/your-repo/issues
- 
- ---
- 
  ## Features
  
  - Modern React with hooks and functional components
@@ -232,4 +227,5 @@
  
  - React, Vite, and the OSS community
  - ESLint, Prettier, and Testing Library teams
+
 
